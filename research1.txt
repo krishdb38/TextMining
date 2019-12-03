@@ -1,0 +1,536 @@
+The increasing number of sequenced genomes has
+prompted the development of several automated orthology
+prediction methods. Tests to evaluate the accuracy of predictions
+and to explore biases caused by biological and
+technical factors are therefore required. We used 70 manually
+curated families to analyze the performance of five
+public methods in Metazoa. We analyzed the strengths
+and weaknesses of the methods and quantified the impact
+of biological and technical challenges. From the latter part
+of the analysis, genome annotation emerged as the largest
+single influencer, affecting up to 30% of the performance.
+Generally, most methods did well in assigning orthologous
+group but they failed to assign the exact number of genes
+for half of the groups. The publicly available benchmark set
+(http://eggnog.embl.de/orthobench/) should facilitate the
+improvement of current orthology assignment protocols,
+which is of utmost importance for many fields of biology
+and should be tackled by a broad scientific community.
+.Keywords: metazoan; orthology; quality assessment
+Introduction
+The analysis of fully sequenced genomes offers valuable
+insights into the function and evolution of biological systems
+[1]. The annotation of newly sequenced genomes, comparative
+and functional genomics, and phylogenomics depend on
+reliable descriptions of the evolutionary relationships of
+protein families. All the members within a protein family
+are homologous and can be further separated into orthologs,
+which are genes derived through speciation from a single
+ancestral sequence, and paralogs, which are genes resulting
+from duplication events before and after speciation (out- and
+in-paralogy, respectively) [2, 3]. The large number of fully
+sequenced genomes and the fundamental role of orthology
+in modern biology have led to the development of a plethora of
+methods (e.g. [4–11]) that automatically predict orthologs
+among organisms. Current approaches of orthology assignment
+can be classified into (i) graph-based methods, which
+cluster orthologs based on sequence similarity of proteins, and
+(ii) tree-based methods, which not only cluster, but also reconcile
+the protein family tree with a species tree (Box 1).
+Despite the fact that orthology and paralogy are ideally illustrated
+through a phylogenetic tree, where all pairwise relationships
+are evident, tree-based methods are computationally
+
+Orthology prediction methods can be classified based on
+the methodology they use to infer orthology into (i) graphbased
+and (ii) tree-based methods [12, 16, 17]. Different
+graph-based methods are designed to assign orthology
+for two (pairwise) or more (multiple) species. Graph-based
+methods assign proteins into OGs based on their similarity
+scores, while tree-based methods infer orthology through
+tree reconciliation.
+Pairwise species methods (e.g. BHR, InParanoid,
+RoundUp):
+Based on these methods, orthologs are best bi-directional
+hits (BBH) between a pair of species. BRH [46] is the first
+automated method and does not detect paralogs.
+InParanoid [47] implements an additional step for the
+detection of paralogs. RoundUp [48] uses evolutionary
+distances instead of BBH. In addition to the restriction
+of only two-species at a time, these methods are disadvantageous
+for long evolutionary distances.
+Multi-species graph-based methods (e.g. COG,
+eggNOG, OrthoDB, OrthoMCL, OMA):
+Due to the fast implementation and high scalability, there are
+many graph-based methods for multi-species comparisons.
+So far, all of them use either BLAST or Smith-
+Waterman (e.g. PARALIGN, SIMG) as sequence-similarity
+search algorithms. However, they are quite diverse regarding
+the clustering algorithms. COG, eggNOG, and OrthoDB
+share the samemethodology: they identify three-way BBHs
+in three different species and then merge triangles that
+share a common side. OrthoMCL is a probabilistic method
+that uses a Markov clustering procedure to cluster BBH
+into OGs. OMA removes from the initial graph BBHs
+characterized by high evolutionary distance; a concept
+similar to RoundUp. After that, it performs clustering based
+on maximum weight cliques. Unique database characteristics
+are the hierarchical groups (OGs in different taxonomic
+levels) and ‘‘pure orthologs’’ (generate groups of one-toone
+orthologswithout paralogs),which has been introduced
+only by OMA (indicated as  in the figure). Hierarchical
+groups can substitute the view of phylogenetic trees.
+Multi-species tree-based methods (e.g. TreeFam,
+Ensembl Compara, PhylomeDB, LOFT):
+Tree-based prediction methods can be separated into
+approaches that do (like EnsemblCompara, TreeFam,
+and PhylomeDB) and do not, e.g. LOFT [49], use treereconciliation.
+Tree-based methods also initially use
+homology searches; however, their criteria are more
+relaxed, as the orthology is resolved through tree topology.
+Although a reconciled phylogenetic tree is the most
+appropriate illustration of orthology/paralogy assignment,
+there are a few caveats to such an approach, namely their
+scalability and sensitivity to data quality.
+For a more detailed and extensive discussion of the differences
+among orthology methodology, we recommend
+refs. [12, 16, 17].
+Phylogenetic distribution describes the species range of
+each database. Homology search shows a few technical
+differences for recruiting orthologs. §: Supplies OGs
+whose members share only orthologous relationships. :
+The user can compare any two genomes spanning a
+phylogenetic distance from bacteria to animals
+
+expensive and at times fail due to the complexity of the family
+or to the substantial number of species in the comparison [12].
+As a trade-off between speed and accuracy, the evolutionary
+relationships among proteins in comparisons that include a
+large number of species are better explored using graph-based
+methods. During the first large-scale orthology assignment
+project of multiple species, the concept of clusters of orthologous
+groups (COGs) was introduced [4]. A COG consists of
+proteins that have evolved from a single ancestral sequence
+existing in the last common ancestor (LCA) of the species that
+are being compared, through a series of speciation and duplication
+events [4]. The orthologous/paralogous relationships
+among proteins of multiple species are better resolved through
+orthologous groups (OGs) rather than pairs of orthologs. This
+is particularly evident in the instances of complex protein
+family histories (e.g. tubulins) or families over significant
+phylogenetic distances (e.g. proteins conserved across all
+domains of life) [13].
+Despite the clear definition of OGs, their automated prediction
+is challenged by a number of biological and technical
+factors exemplified by the evolution of mucins (see Fig. 1), a
+family with a complex evolutionary history [14]. The phylogenetic
+tree of mucins resolves the orthologous relationships
+among the members of the family at every evolutionary level
+(Fig. 1). Still, how they are grouped into OGs depends on the
+phylogenetic range of the species compared. For instance, a
+vertebrate-specific OG will include otogelin and VWF mucins,
+but not the additional gel-forming mucins (MUC5, MUC2,
+and MUC6). Conversely, all gel-forming mucins encompass
+a large OG when considering bilaterians (an animal clade
+that includes vertebrates, insects, and nematodes among
+others) as the level of comparison. Analyzing the OGs at
+different taxonomic levels (e.g. vertebrates vs. bilaterians)
+sheds light on the evolutionary history of the family; however,
+big protein families, which have expanded and contracted
+many times in the history of a lineage, require an increased
+resolution of orthologous-paralogous relationships within
+the same taxonomic level. The inclusion of outgroup
+species of a taxonomic level delineates the aforementioned
+relationships. For instance, Hydra sequences revealed
+the existence of two paralogous sequences in the LCA of
+bilaterians (marked by an asterisk in Fig. 1); thus, according
+to the OG definition, membrane-bound and gel-forming
+mucins should be clustered into two different OGs. Despite
+the lineage-specific duplications and losses of domains [14],
+many complex domain architectures are found across
+the family but not always conserved, which contributes to
+erroneous assignments of orthologs. Repeated domains and
+fast-evolving mucin domains also hamper the automatic
+sequence alignment of the family [15]. All these factors and
+more (see Fig. 1) can influence the accuracy of the many
+emerging resources for orthology assignment [13, 16, 17]. To
+understand the impact on individual resources, one needs to
+understand the design of different orthology prediction
+methods (briefly introduced in Box 1). However, an appropriate
+comparison is extremely difficult for two major reasons,
+both of which contribute to conflicting orthology assignments:
+(i) each method differs in technical (e.g. species distribution,
+similarity cut-offs) and conceptual (e.g. OG definition) aspects,
+and (ii) the lack of a common set of species obtained from the
+same release of genome repositories and tested across all
+methods [16].
+Benchmarking orthology prediction
+methods using a phylogeny approach
+Despite the acknowledged necessity of a phylogeny-based
+evaluation of orthology, thus far the majority of quality assessment
+tests are based on the functional conservation of predicted
+orthologs [18–21]. However, orthology is an
+evolutionary term defined by the relationships among the
+sequences under study, and functional equivalences are not
+always inferable [13]. Moreover, the functional divergence
+between orthologs and paralogs (sub-/neo-functionalization
+of paralogs) or alteration of function during long evolutionary
+distances [13] suggests that those tests are biased toward
+single copy genes or conserved families and less suited for
+large diversified families. It has been proposed that the
+inclusion of synteny information limits the errors arisen
+due to low sequence similarity and increases orthology
+accuracy [22]. However, this requires a certain level of synteny
+conservation among the compared species. It has been illustrated
+that synteny information combined with sequence similarity
+identifies accurately the paralogs that have arisen
+through WGD in six closely related yeast species [23].
+Further refinement of this dataset using tree reconciliation
+[24, 25] ends up with a phylogeny-based dataset. However, it is
+still biased toward simple evolutionary scenarios, highlighting
+mostly the impact of lineage-specific losses in orthology prediction
+[26]. For a much more fine-grained analysis that also
+involves complex OGs, we developed a phylogeny-based
+benchmark set and applied it to a much more diverse taxonomic
+clade, namely metazoans. The set involved the manual
+curation of the phylogeny of 70 protein families that range from
+single copy orthologs to OGs with 100 members (Table S1 of
+Supporting Information). The phylogenetic analysis of each
+protein family for 12 reference bilaterian species and 4 basal
+metazoans as outgroups (Box 2) resulted in the reference orthologous
+groups (RefOGs), including in total 1,638 proteins.
+The manually curated benchmarking set was used for two
+different analyses: (i) comparison of RefOGs to the automatically
+predicted OGs of five publicly available databases, and
+(ii) comparison of RefOGs to different customized versions of
+the eggNOG database. The first comparison aimed at demonstrating
+the power of this dataset to guide the improvement of
+current methods. We selected five databases, namely TreeFam
+[5], eggNOG [6], OrthoDB [7], OrthoMCL [8], and OMA [9], since
+each is designed for multiple-species comparison, but with
+unique database features (Box 1). Although the comparisons are
+against the same benchmarking set, we are aware of several
+other confounding variables, such as algorithmic differences,
+species representation/distribution or genome annotation, that
+can all affect the results. Yet, it quantifies the status of the
+compared databases in an objective way. To quantify the impact
+of some specific biological and technical factors, we additionally
+generated different versions of the eggNOG database to
+monitor several influencing factors one by one.
+We assessed the quality of the OGs at two different levels of
+resolution: (i) gene count, measuring mispredicted genes, and
+
+orthologs in only a few families, while eggNOG overpredicts a
+few proteins in many families (Table S2 of Supporting
+Information), partially due to mispredicted genes (later
+characterized as pseudogenes or wrong gene models) inherited
+from an old genome annotation (see below). We assume
+this observation is partly due to the diverse species ranges of
+the studied repositories (Box 1). EggNOG, although it provides
+a broad species coverage (630 prokaryotes and 55 eukaryotes),
+supplies OGs for several taxonomic levels, such as metazoans
+(meNOGs) that are used in this study and are build from 34
+bilaterians in the eggNOG version studied here. On the other
+hand, OrthoMCL builds its OGs from all 138 eukaryotic and
+prokaryotic species in the database. In other words, ancient
+families, e.g. ABC transporters, which
+expanded before the bilaterian radiation,
+form huge OGs in OrthoMCL, but not in
+the meNOG subset of eggNOG. As different
+scientific questions require a different
+species range, hierarchical groups as provided
+by eggNOG [27], OrthoDB [28], and
+OMA [9] appear to be a balanced solution
+to serve many different questions, compared
+to databases that are only dedicated
+to a particular phylogenetic range [be they
+narrow (TreeFam) or broad (OrthMCL)].
+Despite being specifically designed for
+metazoans, TreeFam has the second largest
+number of erroneously assigned genes after
+OrthoMCL (Fig. 2C), which is accompanied
+by the largest number of fusion events
+(Fig. 2G). This can be attributed to the
+choice of outgroups used by Treefam.
+TreeFam families are phylogenetically separated by a nonanimal
+outgroup (yeast or plant), while, for example,
+Monosiga brevicollis [29] or other proposed species [30] would
+be much better suited. The choice of a phylogenetically closer
+species would presumably split artificially large families.
+Furthermore, delineating orthology through tree reconciliation
+benefits TreeFam in the category of missing genes
+(Fig. 2C), since the lack of a closer outgroup prevents the
+bilaterian OGs from splitting, as illustrated in Fig. 1. In contrast,
+the database with the largest number of missing genes
+and fission events is OMA (Figs. 2C and G) due to an alternative
+operational definition of an OG [31]; only proteins with one-toone
+orthologous relationships are included in an OG, so that
+
+large families with multiple paralogs are split artificially into
+multiple smaller OGs. The latest release of the OMA database,
+publicly available after the completion of our analysis, has
+been redesigned and now provides OGs based on both OMA
+and COG formulations [9].
+In summary, the initial design of an orthology resource,
+e.g. phylogenetic range of species, ‘‘hierarchical groups’’, or
+formulation of OG, is crucial for its performance. In any case,
+all methods only predict a fraction of RefOGs accurately and
+mispredict a large number of genes (Fig. 2). It is noteworthy
+that there are RefOGs that none of the methods infer
+accurately, indicating that there are biological and technical
+factors that affect the performance of orthology assignment
+more generally. We have thus tried to relate a few of them with
+the outcome of this comparison.
+The impact of family complexity on
+orthology prediction
+Due to the central role of orthology in comparative and functional
+genomics, there is an extensive literature on accuracyrestricting
+factors of its assignment [13, 16, 17]. We have
+already mentioned several caveats of orthology prediction
+using the mucin family, the majority of which are exemplified
+by the 70 RefOGs. The families were selected under certain
+criteria (Box 2), mostly with a view to understanding the
+impact of a few biological and technical factors, namely
+duplications (paralogy)/losses, rate of evolution, domain
+architecture, and alignment quality. All these factors have
+been reported to affect the quality of orthology prediction [17].
+Paralogy as manifested in multi-gene families hamper the
+accurate orthology prediction [4, 13]. Multiple lineage-specific
+gene losses and duplications result in complex evolutionary
+scenarios, which are hard to interpret. Classifying the RefOGs
+based on their size, we observed that the larger the RefOG, the
+more mispredictions are introduced by the methods (Fig. 3A).
+For all methods, the numbers of missing genes (Fig. 3A) and
+OG fissions (Fig. S2 in Supporting Information) increases
+significantly with the RefOG size (Table S5 of Supporting
+Information). Additionally, families with more than 40 members
+accumulate both fusion and fission events. For instance,
+GH18-chitinases, a RefOG that consists of 45 members, is
+characterized by multiple vertebrate-specific duplication
+events. All graph-based methods split the vertebrate subfamilies
+of the GH18-chitinases into distinct groups (Table S2 of
+Supporting Information), and TreeFam lumps the RefOG
+with insect-specific homologs due to the presence of the
+glyco-hydro-18 domain, although phylogenetic analysis of
+the family indicates a general lack of orthology among those
+groups [32].
+Some large-size RefOGs, like ribosomal proteins or SAMsynthetases
+are, however, predicted accurately by several
+methods. Since these two well-predicted large families are well
+conserved, we decided to investigate the impact of the rate of
+evolution on orthology prediction. We categorized our benchmarking
+families into fast-, medium-, and slow-evolving based
+on theirMeanID score (described as the ‘‘FamID’’ in [33]), which
+indicates the rate of evolution (Supporting Information). Fastevolving
+families tend to accumulate a larger number of errors
+(Fig. 3B). All graph-based methods miss a larger number of
+genes and introduce more fission events (Fig. S2 in Supporting
+Information) in fast-evolving RefOGs compared to the more
+slowly evolving groups. Since the MeanID score is calculated
+based on the multiple sequence alignment (MSA), we investigated
+the impact of MSA quality by calculating the norMD
+score [34], an alignment score that depends on the number and
+the length of aligned sequences as well as their estimated
+similarity (Supporting Information). We expected TreeFam to
+be more sensitive to low-quality MSAs compared to graphbased
+methods, since it uses MSA for tree-building and reconciliation
+steps to infer orthology. Indeed, it presents the highest
+deviation for all sources of errors (Table S5 of Supporting
+Information). We also found that the number of missing genes
+is also affected by the alignment quality in graph-based
+methods (Fig. 3C). Because MeanID and norMD scores are
+correlated, many of the fast-evolving families are also poorly
+aligned. Still, we can see that TreeFam is significantly more
+affected by MSA quality rather than rate of evolution.
+The vast majority of proteins contain only one domain, and
+themost commonmulti-domain proteins tend to have few(two
+or three) domains [35, 36]. Due to a variety of genetic processes
+(duplication, inversion, recombination, retrotransposition, etc.)
+proteins consisting of multiple domains with independent evolutionary
+origin can arise [37–40]. This leads to conceptual but
+also practical challenges (e.g. alignment) in orthology prediction,
+as the domains have followed distinct evolutionary trajectories
+[16]. We identified the domains of each protein in each
+RefOG through the SMART database [41]. Out of the 70 RefOGs,
+75% contain multi-domain (more than two domains) proteins,
+compared to 62% in the random subset and a report of 40%
+multi-domain occurrence in metazoans [36], which illustrates
+the tendency of the benchmark set toward more challenging
+families. As expected, the proportion of accurately predicted
+RefOGs decreases as the number of average domains per family
+increases (Fig. 3D). Interestingly, the rate of erroneously
+assigned genes presents the most significant correlation with
+domain complexity, suggesting that protein families with
+multiple protein domains ‘‘attract’’ non-orthologous proteins
+due to domain sharing. Repeated domains within proteins, as
+the Von Willebrand factor (VW) D-C8-VWC repeat in mucins
+(Fig. 1) or the epidermal growth factor (EGF) domains in collagen,
+also lead to lower quality of OGs. All of the 27 RefOGs
+containing repeated domains are more error prone than RefOGs
+without repeated domains (Fig. S3 of Supporting Information).
+Taken together, classification of the families from slowevolving
+single copy to fast-evolving large families revealed
+method-specific limitations, but also that all pipelines fail to
+predict complex families accurately. The rates of missing
+genes and fissions significantly correlate with the family size
+and rate of evolution, as expected, whereas the domain complexity
+seems to affect the recruitment of non-orthologous
+genes (Fig. 3, Figs. S2 and S4 of Supporting Information).
+Species coverage affects orthology
+prediction
+Biological complexity is unlikely to be the primary source of
+errors in automated predicted OGs, as there are single-copy,
+
+slow-evolving, or single-domain protein families, which are
+not assigned correctly by several prediction methods.
+By investigating these families, we identified two additional
+technical factors that influence orthology assignment:
+genome annotation and species coverage.
+To quantify the impact of these, we used
+the method in our own hands, eggNOG, as
+we could apply it to different species sets
+(Fig. 4, Table S3 of Supporting Information)
+and genome annotation versions (Fig. 4,
+Table S4 of Supporting Information).
+To measure the impact of species
+coverage, we prepared new OGs from only
+the 12 reference species, but kept the same
+genome annotation version (Ensembl v46)
+that the public eggNOG v2 uses. The 12-
+species-Ensembl46 OGs were compared
+to the RefOGs as well as the 34-species-
+Ensembl46 OGs (referred to as eggNOG in
+Fig. 2). In the 12-species-Ensembl46 OGs, a
+larger number of genes are missing compared
+to the 34-species OGs (eggNOG_v2)
+(Fig. 4B), implying that 30% of the missing
+genes in this dataset are due to the change
+in species coverage. It seems that sequences
+of the 34 species facilitate correct clustering,
+presumably, by breaking long branches so that faster evolving
+genes can be connected (Fig. 4A). For mammals, fish and
+insects, which contain more representatives in 34-species
+OGs, we identified fewer missing genes in the 34-species
+
+OGs than the 12-species OGs. On the other hand, C. elegans and
+C. intestinalis, which are separated by long branches from
+their nearest phylogenetic neighbors in both datasets, are
+not influenced as the sequence similarity for ortholog detection
+remains limited (Fig. 4A). While 34-species perform better
+than 12-species in terms of missing genes, they contain more
+erroneously assigned genes. A large fraction of erroneously
+assigned genes is due to inclusion of low-quality genomes, i.e.
+Tetraodon in Ensembl v60 contains almost 5,000 gene predictions
+less than the same genome in Ensembl v46. In summary,
+the total number of mispredicted genes is higher for the
+12-species OG (Figs. 4A and C), indicating that the more
+genomes and in particular those at the right evolutionary
+distance, increase the quality of the OGs.
+Number of errors inflates because of
+inaccuracies in genome annotation
+The quality of the genome annotation of a species included in
+a genomic or phylogenetic study has been reported to affect
+the results of the study [42]. All resources in this study rely on
+Ensembl [43] genome annotations for all 12 species, but the
+annotation status is considerably different from version to
+version. While eggNOG uses Ensembl v46 (the oldest among
+the compared resources) OrthoDB uses Ensembl v59, thus it is
+the most updated and closest to the RefOG annotation, for
+which Ensembl v60 was used. By tracing the identifiers of the
+mispredicted genes through Ensembl history, we discovered
+that 7% of the missing genes of eggNOG only exist in the latest
+versions of Ensembl (v54 to v60) (Fig. 4B). Genomes like
+human, zebrafish and puffer fish, which were updated after
+Ensembl v46, contribute significantly to the pool of missing
+genes. Likewise, only 58% of the erroneously assigned genes
+of eggNOG map to Ensembl v60, while 40% of them have been
+retracted and 2% have been characterized as pseudogenes.
+Taken together, almost half of all errors result from genome
+annotation artifacts, which is thus a major factor to consider.
+To directly test the effect of the genome annotation and separate
+the impact of species coverage from this analysis, we
+clustered the proteins of the 12 reference species based on the
+Ensembl v60 gene annotations. The impact of genome annotation
+is elucidated by comparing the number of errors
+between the 12-species-Ensembl60 OGs with the 12-species-
+Ensembl46 OGs. Comparing the overall number of mispredicted
+genes, at the gene level, the 12-species-Ensembl60
+OGs perform better than the 12-species-Ensembl46 OGs
+(Fig. 4B). We found 45% fewer erroneously assigned genes
+(149 vs. 271) in the 12-species-new-annotation OGs compared
+to the 12-species-old-annotation OGs. Again, a large fraction
+or erroneously assigned genes of the latter dataset (33%)
+do not exist in Ensembl v60 (Table S4 of Supporting
+Information). However, the number of missing genes is
+similar between the two datasets and higher compared to
+the 34-species OGs, indicating, once again, the impact of
+species coverage. The fact that 40% of the mispredicted
+genes in eggNOG OGs would have been avoided by using
+an updated version of genome annotations, highlights the
+importance of frequent updates and points to the sensitivity
+of genome annotations.
+A transparent benchmark set made
+publicly available
+To facilitate the access to the curated benchmark families,
+we have created a web interface through which details on
+the 70 RefOGs can be retrieved. In addition, alignments,
+protein sequences, phylogenetic trees and HMM of each
+RefOG can be downloaded and used for future analyses of
+the 70 bilaterian OGs. The data are available under the
+Creative Commons Attribution 3.0 License at: http://eggnog.
+embl.de/orthobench.
+Conclusions
+The quality assessment introduced here is independent of
+functional associations and, instead, directly approaches
+the phylogenetic foundations of OGs. The benchmark set
+was applied to five commonly used databases and revealed
+the impact of several biological and technical factors that
+challenge orthology prediction. All studied repositories
+predict only a fraction of RefOGs accurately and thus
+indicate that there is considerable room for improvement
+for all orthology assignment methods. Although it is
+impossible to completely quantify the individual factors
+that contribute to the errors of each method due to the
+diversity of the methodologies, hidden correlations, and
+confounding variables, the 70 RefOGs reveal biological
+and technical limitations that affect each method significantly.
+For example, domain complexity is significantly
+correlated with an increased accumulation of erroneously
+assigned genes in all databases. Our results also illustrate
+that all the tested algorithms need to be improved to be able
+to handle the ‘‘complex’’ families (duplication/losses,
+complex domain architectures). Of the RefOGs, 36% are
+not accurately predicted by any tested databases, revealing
+‘‘global’’ limitations of orthology predictions that are associated
+with the factors we outlined here. There are also RefOGs
+that only some of the databasesmispredict, and, thus, hint at
+database-specific improvements, i.e. several operational
+differences, such as the delineation of hierarchical groups,
+and the usage of (as close as possible) outgroups affect the
+accuracy of predicted OGs.
+However, the most striking outcome of this study is that
+technical factors, such as genome quality followed by the
+phylogenetic coverage of the compared species seem to be
+the most limiting factors, causing up to 40% of the errors
+observed. The last observation suggests that frequent
+updates of the databases are necessary. Although we only
+tested bilaterian OGs in this study, we realize the importance
+of the expansion to other taxonomic groups, and have
+therefore provided sequences, alignments, HMM profiles,
+and trees of the RefOGs publicly at http://eggnog.embl.de/
+orthobench for further curation in other species. As this
+benchmark set proved valuable for assessing the quality of
+predicted OGs in metazoans, we believe that an analogous
+dataset covering the entire tree of life and capturing
+additional challenges more prominent in prokaryotes, such
+as horizontal gene transfer, should be the next step in guiding
+orthology prediction.
+Acknowledgments
+We would like to thank the OrthoDB team for providing us
+with a customized dataset. We are grateful to Lars Juhl Jensen,
+Martijn Huynen, Evgeny Zdobnov, and Michael Kuhn for their
+insightful comments, Venkata Satagopam for his help with
+EnsEMBL History, and all members of the Bork group for the
+fruitful discussions, and in particular Ivica Letunic for his help
+with the multidomain analysis.We would like also to thank the
+three anonymous reviewers for their constructive comments.
