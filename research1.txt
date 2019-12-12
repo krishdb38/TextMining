@@ -1,536 +1,793 @@
-The increasing number of sequenced genomes has
-prompted the development of several automated orthology
-prediction methods. Tests to evaluate the accuracy of predictions
-and to explore biases caused by biological and
-technical factors are therefore required. We used 70 manually
-curated families to analyze the performance of five
-public methods in Metazoa. We analyzed the strengths
-and weaknesses of the methods and quantified the impact
-of biological and technical challenges. From the latter part
-of the analysis, genome annotation emerged as the largest
-single influencer, affecting up to 30% of the performance.
-Generally, most methods did well in assigning orthologous
-group but they failed to assign the exact number of genes
-for half of the groups. The publicly available benchmark set
-(http://eggnog.embl.de/orthobench/) should facilitate the
-improvement of current orthology assignment protocols,
-which is of utmost importance for many fields of biology
-and should be tackled by a broad scientific community.
-.Keywords: metazoan; orthology; quality assessment
-Introduction
-The analysis of fully sequenced genomes offers valuable
-insights into the function and evolution of biological systems
-[1]. The annotation of newly sequenced genomes, comparative
-and functional genomics, and phylogenomics depend on
-reliable descriptions of the evolutionary relationships of
-protein families. All the members within a protein family
-are homologous and can be further separated into orthologs,
-which are genes derived through speciation from a single
-ancestral sequence, and paralogs, which are genes resulting
-from duplication events before and after speciation (out- and
-in-paralogy, respectively) [2, 3]. The large number of fully
-sequenced genomes and the fundamental role of orthology
-in modern biology have led to the development of a plethora of
-methods (e.g. [4–11]) that automatically predict orthologs
-among organisms. Current approaches of orthology assignment
-can be classified into (i) graph-based methods, which
-cluster orthologs based on sequence similarity of proteins, and
-(ii) tree-based methods, which not only cluster, but also reconcile
-the protein family tree with a species tree (Box 1).
-Despite the fact that orthology and paralogy are ideally illustrated
-through a phylogenetic tree, where all pairwise relationships
-are evident, tree-based methods are computationally
+By informing timely targeted treatments, rapid whole-genome sequencing can improve the outcomes of seriously
+ill children with genetic diseases, particularly infants in neonatal and pediatric intensive care units (ICUs). The
+need for highly qualified professionals to decipher results, however, precludes widespread implementation. We
+describe a platform for population-scale, provisional diagnosis of genetic diseases with automated phenotyping
+and interpretation. Genome sequencing was expedited by bead-based genome library preparation directly from
+blood samples and sequencing of paired 100-nt reads in 15.5 hours. Clinical natural language processing (CNLP)
+automatically extracted children’s deep phenomes from electronic health records with 80% precision and 93%
+recall. In 101 children with 105 genetic diseases, a mean of 4.3 CNLP-extracted phenotypic features matched the
+expected phenotypic features of those diseases, compared with a match of 0.9 phenotypic features used in manual
+interpretation. We automated provisional diagnosis by combining the ranking of the similarity of a patient’s
+CNLP phenome with respect to the expected phenotypic features of all genetic diseases, together with the ranking
+of the pathogenicity of all of the patient’s genomic variants. Automated, retrospective diagnoses concurred
+well with expert manual interpretation (97% recall and 99% precision in 95 children with 97 genetic diseases).
+Prospectively, our platform correctly diagnosed three of seven seriously ill ICU infants (100% precision and recall)
+with a mean time saving of 22:19 hours. In each case, the diagnosis affected treatment. Genome sequencing with
+automated phenotyping and interpretation in a median of 20:10 hours may increase adoption in ICUs and, thereby,
+timely implementation of precise treatments.
+genomic medicine by pediatricians, and the high capital and labor
+intensity of current clinical rWGS and interpretation.
+We previously described diagnosis by rWGS in 26 hours in a research
+setting (16, 17). In the clinical studies reported to date, however,
+the fastest genetic diagnosis by genome sequencing was 37 hours,
+the mean time to diagnosis was 16 days, and the largest cohort comprised
+only 63 patients (8, 16–30). The small cohort size and longer
+time to diagnosis in those clinical studies substantiate the limitations
+of current methods of rWGS. Here, we report methods for
+clinical diagnosis of genetic diseases in a median of 20:10 hours that
+can be scaled to 30 patients per week per genome sequencing instrument,
+with automated provisional diagnosis.
 
-Orthology prediction methods can be classified based on
-the methodology they use to infer orthology into (i) graphbased
-and (ii) tree-based methods [12, 16, 17]. Different
-graph-based methods are designed to assign orthology
-for two (pairwise) or more (multiple) species. Graph-based
-methods assign proteins into OGs based on their similarity
-scores, while tree-based methods infer orthology through
-tree reconciliation.
-Pairwise species methods (e.g. BHR, InParanoid,
-RoundUp):
-Based on these methods, orthologs are best bi-directional
-hits (BBH) between a pair of species. BRH [46] is the first
-automated method and does not detect paralogs.
-InParanoid [47] implements an additional step for the
-detection of paralogs. RoundUp [48] uses evolutionary
-distances instead of BBH. In addition to the restriction
-of only two-species at a time, these methods are disadvantageous
-for long evolutionary distances.
-Multi-species graph-based methods (e.g. COG,
-eggNOG, OrthoDB, OrthoMCL, OMA):
-Due to the fast implementation and high scalability, there are
-many graph-based methods for multi-species comparisons.
-So far, all of them use either BLAST or Smith-
-Waterman (e.g. PARALIGN, SIMG) as sequence-similarity
-search algorithms. However, they are quite diverse regarding
-the clustering algorithms. COG, eggNOG, and OrthoDB
-share the samemethodology: they identify three-way BBHs
-in three different species and then merge triangles that
-share a common side. OrthoMCL is a probabilistic method
-that uses a Markov clustering procedure to cluster BBH
-into OGs. OMA removes from the initial graph BBHs
-characterized by high evolutionary distance; a concept
-similar to RoundUp. After that, it performs clustering based
-on maximum weight cliques. Unique database characteristics
-are the hierarchical groups (OGs in different taxonomic
-levels) and ‘‘pure orthologs’’ (generate groups of one-toone
-orthologswithout paralogs),which has been introduced
-only by OMA (indicated as  in the figure). Hierarchical
-groups can substitute the view of phylogenetic trees.
-Multi-species tree-based methods (e.g. TreeFam,
-Ensembl Compara, PhylomeDB, LOFT):
-Tree-based prediction methods can be separated into
-approaches that do (like EnsemblCompara, TreeFam,
-and PhylomeDB) and do not, e.g. LOFT [49], use treereconciliation.
-Tree-based methods also initially use
-homology searches; however, their criteria are more
-relaxed, as the orthology is resolved through tree topology.
-Although a reconciled phylogenetic tree is the most
-appropriate illustration of orthology/paralogy assignment,
-there are a few caveats to such an approach, namely their
-scalability and sensitivity to data quality.
-For a more detailed and extensive discussion of the differences
-among orthology methodology, we recommend
-refs. [12, 16, 17].
-Phylogenetic distribution describes the species range of
-each database. Homology search shows a few technical
-differences for recruiting orthologs. §: Supplies OGs
-whose members share only orthologous relationships. :
-The user can compare any two genomes spanning a
-phylogenetic distance from bacteria to animals
+RESULTS
+rWGS for genetic disease diagnosis
+In light of the limitations of current methods of rWGS, we developed
+an automated platform for rapid, high-throughput, provisional diagnosis
+of genetic diseases with genome sequencing by automating
+and accelerating our conventional workflow (Fig. 1). Conventional
+clinical genome sequencing requires preparatory steps of manual purification
+of genomic DNA from blood samples, DNA quality assessment,
+normalization of DNA concentration, sequencing library preparation,
+and library quality assessment (Fig. 1A). Instead, we manually prepared
+sequencing libraries directly from blood samples or dried blood
+spots using microbeads to which transposons were attached (Nextera
 
-expensive and at times fail due to the complexity of the family
-or to the substantial number of species in the comparison [12].
-As a trade-off between speed and accuracy, the evolutionary
-relationships among proteins in comparisons that include a
-large number of species are better explored using graph-based
-methods. During the first large-scale orthology assignment
-project of multiple species, the concept of clusters of orthologous
-groups (COGs) was introduced [4]. A COG consists of
-proteins that have evolved from a single ancestral sequence
-existing in the last common ancestor (LCA) of the species that
-are being compared, through a series of speciation and duplication
-events [4]. The orthologous/paralogous relationships
-among proteins of multiple species are better resolved through
-orthologous groups (OGs) rather than pairs of orthologs. This
-is particularly evident in the instances of complex protein
-family histories (e.g. tubulins) or families over significant
-phylogenetic distances (e.g. proteins conserved across all
-domains of life) [13].
-Despite the clear definition of OGs, their automated prediction
-is challenged by a number of biological and technical
-factors exemplified by the evolution of mucins (see Fig. 1), a
-family with a complex evolutionary history [14]. The phylogenetic
-tree of mucins resolves the orthologous relationships
-among the members of the family at every evolutionary level
-(Fig. 1). Still, how they are grouped into OGs depends on the
-phylogenetic range of the species compared. For instance, a
-vertebrate-specific OG will include otogelin and VWF mucins,
-but not the additional gel-forming mucins (MUC5, MUC2,
-and MUC6). Conversely, all gel-forming mucins encompass
-a large OG when considering bilaterians (an animal clade
-that includes vertebrates, insects, and nematodes among
-others) as the level of comparison. Analyzing the OGs at
-different taxonomic levels (e.g. vertebrates vs. bilaterians)
-sheds light on the evolutionary history of the family; however,
-big protein families, which have expanded and contracted
-many times in the history of a lineage, require an increased
-resolution of orthologous-paralogous relationships within
-the same taxonomic level. The inclusion of outgroup
-species of a taxonomic level delineates the aforementioned
-relationships. For instance, Hydra sequences revealed
-the existence of two paralogous sequences in the LCA of
-bilaterians (marked by an asterisk in Fig. 1); thus, according
-to the OG definition, membrane-bound and gel-forming
-mucins should be clustered into two different OGs. Despite
-the lineage-specific duplications and losses of domains [14],
-many complex domain architectures are found across
-the family but not always conserved, which contributes to
-erroneous assignments of orthologs. Repeated domains and
-fast-evolving mucin domains also hamper the automatic
-sequence alignment of the family [15]. All these factors and
-more (see Fig. 1) can influence the accuracy of the many
-emerging resources for orthology assignment [13, 16, 17]. To
-understand the impact on individual resources, one needs to
-understand the design of different orthology prediction
-methods (briefly introduced in Box 1). However, an appropriate
-comparison is extremely difficult for two major reasons,
-both of which contribute to conflicting orthology assignments:
-(i) each method differs in technical (e.g. species distribution,
-similarity cut-offs) and conceptual (e.g. OG definition) aspects,
-and (ii) the lack of a common set of species obtained from the
-same release of genome repositories and tested across all
-methods [16].
-Benchmarking orthology prediction
-methods using a phylogeny approach
-Despite the acknowledged necessity of a phylogeny-based
-evaluation of orthology, thus far the majority of quality assessment
-tests are based on the functional conservation of predicted
-orthologs [18–21]. However, orthology is an
-evolutionary term defined by the relationships among the
-sequences under study, and functional equivalences are not
-always inferable [13]. Moreover, the functional divergence
-between orthologs and paralogs (sub-/neo-functionalization
-of paralogs) or alteration of function during long evolutionary
-distances [13] suggests that those tests are biased toward
-single copy genes or conserved families and less suited for
-large diversified families. It has been proposed that the
-inclusion of synteny information limits the errors arisen
-due to low sequence similarity and increases orthology
-accuracy [22]. However, this requires a certain level of synteny
-conservation among the compared species. It has been illustrated
-that synteny information combined with sequence similarity
-identifies accurately the paralogs that have arisen
-through WGD in six closely related yeast species [23].
-Further refinement of this dataset using tree reconciliation
-[24, 25] ends up with a phylogeny-based dataset. However, it is
-still biased toward simple evolutionary scenarios, highlighting
-mostly the impact of lineage-specific losses in orthology prediction
-[26]. For a much more fine-grained analysis that also
-involves complex OGs, we developed a phylogeny-based
-benchmark set and applied it to a much more diverse taxonomic
-clade, namely metazoans. The set involved the manual
-curation of the phylogeny of 70 protein families that range from
-single copy orthologs to OGs with 100 members (Table S1 of
-Supporting Information). The phylogenetic analysis of each
-protein family for 12 reference bilaterian species and 4 basal
-metazoans as outgroups (Box 2) resulted in the reference orthologous
-groups (RefOGs), including in total 1,638 proteins.
-The manually curated benchmarking set was used for two
-different analyses: (i) comparison of RefOGs to the automatically
-predicted OGs of five publicly available databases, and
-(ii) comparison of RefOGs to different customized versions of
-the eggNOG database. The first comparison aimed at demonstrating
-the power of this dataset to guide the improvement of
-current methods. We selected five databases, namely TreeFam
-[5], eggNOG [6], OrthoDB [7], OrthoMCL [8], and OMA [9], since
-each is designed for multiple-species comparison, but with
-unique database features (Box 1). Although the comparisons are
-against the same benchmarking set, we are aware of several
-other confounding variables, such as algorithmic differences,
-species representation/distribution or genome annotation, that
-can all affect the results. Yet, it quantifies the status of the
-compared databases in an objective way. To quantify the impact
-of some specific biological and technical factors, we additionally
-generated different versions of the eggNOG database to
-monitor several influencing factors one by one.
-We assessed the quality of the OGs at two different levels of
-resolution: (i) gene count, measuring mispredicted genes, and
+DNA Flex Library Prep Kit, Illumina Inc.; Fig. 1B) (35), because
+this method was both faster and less labor intensive. Dried blood
+spots are the sample type used in mandatory newborn screening
+worldwide. In four timed runs with retrospective samples, manual
+Nextera library preparation from dried blood spots took a mean of
+2 hours and 45 min, compared with at least 10 hours by conventional
+DNA purification and library preparation (TruSeq DNA PCR-free
+Library Prep Kit, Illumina Inc.; Table 1). As with standard methods,
+Nextera Flex allowed samples to be prepared in batches and was
+amenable to automation with liquid-handling robots.
+Following the preparatory steps, our previous method performed
+rWGS with the HiSeq 2500 sequencer (Illumina) in rapid run mode,
+with one sample sequenced per sequencing instrument [~120 gigabases
+(Gb) of 2 × 101 nucleotides (nt)] in ~25 hours (Fig. 1A) (16, 17).
+Here, we instead performed rWGS with the NovaSeq 6000 sequencer
+and S1 flow cell (Illumina) (Fig. 1B), as this instrument was faster
+and less labor intensive, requiring fewer steps to set up a sequencing
+run and automatically washing the instrument after a run. In four
+timed runs with retrospective samples, genome sequencing of 2 ×
+101 nt took a mean 15:32 hours and yielded 404 to 537 Gb per flow
+cell, sufficient for two to three 40× genome sequences (Table 1 and
+table S1).
+Dynamic Read Analysis for GENomics (DRAGEN, Illumina) is
+a hardware and software platform for alignment and variant calling
+that has been highly optimized for speed, sensitivity, and accuracy
+(16). We wrote scripts to automate the transfer of files from the sequencer
+to the DRAGEN platform. The
+DRAGEN platform then automatically
+aligned the reads to the reference genome
+and identified and genotyped nucleotide
+variants. Alignment and variant calling
+took a median of 1 hour for 150 Gb of
+101-nt paired-end sequences (primary
+and secondary analyses; Table 1). Analytic
+performance of this new method, from
+blood sample receipt to output of genomic
+variant genotypes, was similar to standard
+clinical methods with reference human
+genome samples, retrospective patient
+samples, and prospective patient samples,
+except for lower sensitivity in the detection
+of nucleotide insertions and deletions
+(tables S1 and S2). The new method did not
+assess structural variations.
 
-orthologs in only a few families, while eggNOG overpredicts a
-few proteins in many families (Table S2 of Supporting
-Information), partially due to mispredicted genes (later
-characterized as pseudogenes or wrong gene models) inherited
-from an old genome annotation (see below). We assume
-this observation is partly due to the diverse species ranges of
-the studied repositories (Box 1). EggNOG, although it provides
-a broad species coverage (630 prokaryotes and 55 eukaryotes),
-supplies OGs for several taxonomic levels, such as metazoans
-(meNOGs) that are used in this study and are build from 34
-bilaterians in the eggNOG version studied here. On the other
-hand, OrthoMCL builds its OGs from all 138 eukaryotic and
-prokaryotic species in the database. In other words, ancient
-families, e.g. ABC transporters, which
-expanded before the bilaterian radiation,
-form huge OGs in OrthoMCL, but not in
-the meNOG subset of eggNOG. As different
-scientific questions require a different
-species range, hierarchical groups as provided
-by eggNOG [27], OrthoDB [28], and
-OMA [9] appear to be a balanced solution
-to serve many different questions, compared
-to databases that are only dedicated
-to a particular phylogenetic range [be they
-narrow (TreeFam) or broad (OrthMCL)].
-Despite being specifically designed for
-metazoans, TreeFam has the second largest
-number of erroneously assigned genes after
-OrthoMCL (Fig. 2C), which is accompanied
-by the largest number of fusion events
-(Fig. 2G). This can be attributed to the
-choice of outgroups used by Treefam.
-TreeFam families are phylogenetically separated by a nonanimal
-outgroup (yeast or plant), while, for example,
-Monosiga brevicollis [29] or other proposed species [30] would
-be much better suited. The choice of a phylogenetically closer
-species would presumably split artificially large families.
-Furthermore, delineating orthology through tree reconciliation
-benefits TreeFam in the category of missing genes
-(Fig. 2C), since the lack of a closer outgroup prevents the
-bilaterian OGs from splitting, as illustrated in Fig. 1. In contrast,
-the database with the largest number of missing genes
-and fission events is OMA (Figs. 2C and G) due to an alternative
-operational definition of an OG [31]; only proteins with one-toone
-orthologous relationships are included in an OG, so that
+in a minimum of 26 hours but with a mean time to diagnosis of 16 days (8, 16–30). Genome sequencing was requested
+manually. We manually extracted genomic DNA from blood samples, assessed the DNA quality (QA), and manually
+normalized the DNA concentration. We then manually prepared TruSeq PCR-free DNA sequencing libraries, performed the
+QA again, and manually normalized the library concentration. Genome sequencing was performed on the HiSeq 2500 system
+(Illumina) in rapid run mode (RRM). Sequences were manually transferred to the DRAGEN Platform version 1 (Illumina)
+for alignment and variant calling. Phenotypic features were identified by manual review of the electronic health record
+(EHR). Variant files and phenotypic features were manually loaded into Opal software (Fabric), and interpretation was
+performed manually. (B) Steps in autonomous diagnosis of up to six patients concurrently in a minimum of 19 hours
+(fig. S3). Steps included (i) automation of order entry from the EHR with a portal; (ii) manual or robotic preparation of
+Nextera DNA Flex sequencing libraries directly from the blood in 2.5 hours; (iii) rapid 40-fold coverage genome
+sequencing in 15.5 hours with the NovaSeq 6000 system and S1 flow cell (Illumina); (iv) automation of sequence
+transfer, alignment, and variant calling in 1 hour with the DRAGEN platform, version 2 (Illumina); (v) automated
+extraction of patient phenomes from the EHR by clinical natural language processing (CNLP) and translation to Human
+Phenotype Ontology (HPO) terms in 20 s; and (vi) automated transfer of variant and phenotype files and automated
+Bayesian comparison of the CNLP phenome with those of all genetic diseases (MOON, Diploid) combined with automated
+assessment of the pathogenicity of their genomic variants based on aggregated literature knowledge and in silico
+predictive tools (InterVar) and with automated display of the highest-ranked provisional diagnosis(es).
 
-large families with multiple paralogs are split artificially into
-multiple smaller OGs. The latest release of the OMA database,
-publicly available after the completion of our analysis, has
-been redesigned and now provides OGs based on both OMA
-and COG formulations [9].
-In summary, the initial design of an orthology resource,
-e.g. phylogenetic range of species, ‘‘hierarchical groups’’, or
-formulation of OG, is crucial for its performance. In any case,
-all methods only predict a fraction of RefOGs accurately and
-mispredict a large number of genes (Fig. 2). It is noteworthy
-that there are RefOGs that none of the methods infer
-accurately, indicating that there are biological and technical
-factors that affect the performance of orthology assignment
-more generally. We have thus tried to relate a few of them with
-the outcome of this comparison.
-The impact of family complexity on
-orthology prediction
-Due to the central role of orthology in comparative and functional
-genomics, there is an extensive literature on accuracyrestricting
-factors of its assignment [13, 16, 17]. We have
-already mentioned several caveats of orthology prediction
-using the mucin family, the majority of which are exemplified
-by the 70 RefOGs. The families were selected under certain
-criteria (Box 2), mostly with a view to understanding the
-impact of a few biological and technical factors, namely
-duplications (paralogy)/losses, rate of evolution, domain
-architecture, and alignment quality. All these factors have
-been reported to affect the quality of orthology prediction [17].
-Paralogy as manifested in multi-gene families hamper the
-accurate orthology prediction [4, 13]. Multiple lineage-specific
-gene losses and duplications result in complex evolutionary
-scenarios, which are hard to interpret. Classifying the RefOGs
-based on their size, we observed that the larger the RefOG, the
-more mispredictions are introduced by the methods (Fig. 3A).
-For all methods, the numbers of missing genes (Fig. 3A) and
-OG fissions (Fig. S2 in Supporting Information) increases
-significantly with the RefOG size (Table S5 of Supporting
-Information). Additionally, families with more than 40 members
-accumulate both fusion and fission events. For instance,
-GH18-chitinases, a RefOG that consists of 45 members, is
-characterized by multiple vertebrate-specific duplication
-events. All graph-based methods split the vertebrate subfamilies
-of the GH18-chitinases into distinct groups (Table S2 of
-Supporting Information), and TreeFam lumps the RefOG
-with insect-specific homologs due to the presence of the
-glyco-hydro-18 domain, although phylogenetic analysis of
-the family indicates a general lack of orthology among those
-groups [32].
-Some large-size RefOGs, like ribosomal proteins or SAMsynthetases
-are, however, predicted accurately by several
-methods. Since these two well-predicted large families are well
-conserved, we decided to investigate the impact of the rate of
-evolution on orthology prediction. We categorized our benchmarking
-families into fast-, medium-, and slow-evolving based
-on theirMeanID score (described as the ‘‘FamID’’ in [33]), which
-indicates the rate of evolution (Supporting Information). Fastevolving
-families tend to accumulate a larger number of errors
-(Fig. 3B). All graph-based methods miss a larger number of
-genes and introduce more fission events (Fig. S2 in Supporting
-Information) in fast-evolving RefOGs compared to the more
-slowly evolving groups. Since the MeanID score is calculated
-based on the multiple sequence alignment (MSA), we investigated
-the impact of MSA quality by calculating the norMD
-score [34], an alignment score that depends on the number and
-the length of aligned sequences as well as their estimated
-similarity (Supporting Information). We expected TreeFam to
-be more sensitive to low-quality MSAs compared to graphbased
-methods, since it uses MSA for tree-building and reconciliation
-steps to infer orthology. Indeed, it presents the highest
-deviation for all sources of errors (Table S5 of Supporting
-Information). We also found that the number of missing genes
-is also affected by the alignment quality in graph-based
-methods (Fig. 3C). Because MeanID and norMD scores are
-correlated, many of the fast-evolving families are also poorly
-aligned. Still, we can see that TreeFam is significantly more
-affected by MSA quality rather than rate of evolution.
-The vast majority of proteins contain only one domain, and
-themost commonmulti-domain proteins tend to have few(two
-or three) domains [35, 36]. Due to a variety of genetic processes
-(duplication, inversion, recombination, retrotransposition, etc.)
-proteins consisting of multiple domains with independent evolutionary
-origin can arise [37–40]. This leads to conceptual but
-also practical challenges (e.g. alignment) in orthology prediction,
-as the domains have followed distinct evolutionary trajectories
-[16]. We identified the domains of each protein in each
-RefOG through the SMART database [41]. Out of the 70 RefOGs,
-75% contain multi-domain (more than two domains) proteins,
-compared to 62% in the random subset and a report of 40%
-multi-domain occurrence in metazoans [36], which illustrates
-the tendency of the benchmark set toward more challenging
-families. As expected, the proportion of accurately predicted
-RefOGs decreases as the number of average domains per family
-increases (Fig. 3D). Interestingly, the rate of erroneously
-assigned genes presents the most significant correlation with
-domain complexity, suggesting that protein families with
-multiple protein domains ‘‘attract’’ non-orthologous proteins
-due to domain sharing. Repeated domains within proteins, as
-the Von Willebrand factor (VW) D-C8-VWC repeat in mucins
-(Fig. 1) or the epidermal growth factor (EGF) domains in collagen,
-also lead to lower quality of OGs. All of the 27 RefOGs
-containing repeated domains are more error prone than RefOGs
-without repeated domains (Fig. S3 of Supporting Information).
-Taken together, classification of the families from slowevolving
-single copy to fast-evolving large families revealed
-method-specific limitations, but also that all pipelines fail to
-predict complex families accurately. The rates of missing
-genes and fissions significantly correlate with the family size
-and rate of evolution, as expected, whereas the domain complexity
-seems to affect the recruitment of non-orthologous
-genes (Fig. 3, Figs. S2 and S4 of Supporting Information).
-Species coverage affects orthology
-prediction
-Biological complexity is unlikely to be the primary source of
-errors in automated predicted OGs, as there are single-copy,
+Genetic disease diagnosis requires determination
+of a differential diagnosis based
+on the overlap of the observed clinical
+features of a child’s illness (phenotypic
+features) with the expected features of all
+genetic diseases. However, a comprehensive
+EHR review can take hours. In
+addition, manual phenotypic feature
+selection can be sparse and subjective
+(36, 37), and even expert reviewers can
+carry an unwritten bias into interpretation
+(Fig. 1A). We sought automated,
+complete phenotypic feature extraction
 
-slow-evolving, or single-domain protein families, which are
-not assigned correctly by several prediction methods.
-By investigating these families, we identified two additional
-technical factors that influence orthology assignment:
-genome annotation and species coverage.
-To quantify the impact of these, we used
-the method in our own hands, eggNOG, as
-we could apply it to different species sets
-(Fig. 4, Table S3 of Supporting Information)
-and genome annotation versions (Fig. 4,
-Table S4 of Supporting Information).
-To measure the impact of species
-coverage, we prepared new OGs from only
-the 12 reference species, but kept the same
-genome annotation version (Ensembl v46)
-that the public eggNOG v2 uses. The 12-
-species-Ensembl46 OGs were compared
-to the RefOGs as well as the 34-species-
-Ensembl46 OGs (referred to as eggNOG in
-Fig. 2). In the 12-species-Ensembl46 OGs, a
-larger number of genes are missing compared
-to the 34-species OGs (eggNOG_v2)
-(Fig. 4B), implying that 30% of the missing
-genes in this dataset are due to the change
-in species coverage. It seems that sequences
-of the 34 species facilitate correct clustering,
-presumably, by breaking long branches so that faster evolving
-genes can be connected (Fig. 4A). For mammals, fish and
-insects, which contain more representatives in 34-species
-OGs, we identified fewer missing genes in the 34-species
+from EHRs, unbiased by expert opinion. The simplest approach
+would be to extract universal, structured phenotypic features, such
+as International Classification of Diseases (ICD) medical diagnosis
+codes or diagnosis-related group (DRG) codes. However, these are
+sparse and lack sufficient specificity (38, 39). Instead, we extracted
+clinical features from unstructured text in patient EHRs by CNLP that
+we optimized for identification of patients with orphan diseases (CLiX
+ENRICH, Clinithink Ltd.) (Figs. 1B and 2A). We then iteratively
+optimized the protocol for the Rady Children’s Hospital Epic EHRs
+using a training set of 16 children who had received genome sequencing
+for genetic disease diagnosis (table S3). The standard output
+from CLiX ENRICH is in the form of Systematized Nomenclature of
+Medicine Clinical Terms (SNOMED CT). However, our automated
+methods required phenotypic features described in the HPO, a hierarchical
+reference vocabulary designed for description of the clinical features
+of genetic diseases (Fig. 2B). For this reason, we mapped 7706 (60%)
+of 12,786 HPO terms (13,685 including synonyms) and 75.4% of
+Orphanet Rare Disease HPO terms (released in June 2018) to
+SNOMED CT by lexical and logical methods and then manually
+verified them (data file S1). This enabled automated translation of
+phenotypic features extracted from the EHR by CNLP from SNOMED
+CT concepts to HPO terms (Fig. 1B). In contrast, Dhombres and
+Bodenreider (40) mapped 92% of HPO terms to SNOMED CT, but
+only 49% were shown to be ontologically valid and clinically relevant.
+The performance of the optimized CNLP was tested with the
+EHRs of 10 test children who had received genome sequencing for
+genetic disease diagnosis. The training and test sets did not overlap.
+Both exact EHR phenotypic feature matches and their hierarchical
+root terms were extracted from the first record until time of enrollment
+for genome sequencing. CNLP identified a mean of 86.7 phenotypic
+features (SD, 32.8; range, 26 to 158) (table S4) in about 20 s
+per patient. A detailed manual review of the EHR was performed to
+identify all true-positive, false-positive, and false-negative CNLP
+phenotypic features in the test children. The precision (positive predictive
+value) of CNLP was 80% and the recall (sensitivity) was 93%
+(table S4), which were superior to previous CNLP-based extraction of
+HPO terms (36, 41). The principal reasons for false positives were as
+follows: (i) incorrect CLiX encoding (n = 89, 38% of 237 phenotypic
+features) due to misinterpreted context (n = 31), unrecognized
+headings (n = 23), incorrect acronym expansion (n = 21), incorrect
+interpretation of a clinical word (n = 8), or incorrectly attributed
+finding site for disease (n = 6); (ii) ambiguity of source text (unrecognized
+or incorrect syntax, abbreviations, acronyms, or terminology;
+n = 46, 19% of 237); (iii) incongruity among SNOMED CT,
+HPO, and clinical acumen (n = 20, 8%); (iv) failure to recognize a
+pasted citation as nonclinical text (n = 68,
+Development of an autonomous diagnostic system has been hindered
+by a dearth of knowledge of the topography of the phenomes of
+children with suspected genetic diseases (36, 42–44). Therefore, we
+compared EHR CNLP-derived phenomes with the comparatively
+sparse phenotypic features selected by experts during manual interpretation
+of the first 375 symptomatic children to receive genome
+sequencing for diagnosis of genetic diseases at Rady Children’s Hospital
+[101 children diagnosed with genome sequencing (Fig. 3, A to D)
+and 274 children who were not diagnosed (Fig. 3, E to H); data files
+S3 and S4]. In 101 of these children, who had received genomic diagnoses
+of 105 genetic diseases (four had dual diagnoses), we also
+compared the observed phenotypic features with the expected phenotypic
+features for those diseases, obtained from the Clinical Synopsis
+field of Online Mendelian Inheritance in Man (OMIM) (table S15)
+(18, 22–24, 41). In the 101 diagnosed children, CNLP identified
+27-fold more phenotypic features (mean, 116.1; SD, 93.6; range, 13 to 521)
+than expert manual selection at interpretation (mean, 4.2; SD, 2.6
 
-OGs than the 12-species OGs. On the other hand, C. elegans and
-C. intestinalis, which are separated by long branches from
-their nearest phylogenetic neighbors in both datasets, are
-not influenced as the sequence similarity for ortholog detection
-remains limited (Fig. 4A). While 34-species perform better
-than 12-species in terms of missing genes, they contain more
-erroneously assigned genes. A large fraction of erroneously
-assigned genes is due to inclusion of low-quality genomes, i.e.
-Tetraodon in Ensembl v60 contains almost 5,000 gene predictions
-less than the same genome in Ensembl v46. In summary,
-the total number of mispredicted genes is higher for the
-12-species OG (Figs. 4A and C), indicating that the more
-genomes and in particular those at the right evolutionary
-distance, increase the quality of the OGs.
-Number of errors inflates because of
-inaccuracies in genome annotation
-The quality of the genome annotation of a species included in
-a genomic or phylogenetic study has been reported to affect
-the results of the study [42]. All resources in this study rely on
-Ensembl [43] genome annotations for all 12 species, but the
-annotation status is considerably different from version to
-version. While eggNOG uses Ensembl v46 (the oldest among
-the compared resources) OrthoDB uses Ensembl v59, thus it is
-the most updated and closest to the RefOG annotation, for
-which Ensembl v60 was used. By tracing the identifiers of the
-mispredicted genes through Ensembl history, we discovered
-that 7% of the missing genes of eggNOG only exist in the latest
-versions of Ensembl (v54 to v60) (Fig. 4B). Genomes like
-human, zebrafish and puffer fish, which were updated after
-Ensembl v46, contribute significantly to the pool of missing
-genes. Likewise, only 58% of the erroneously assigned genes
-of eggNOG map to Ensembl v60, while 40% of them have been
-retracted and 2% have been characterized as pseudogenes.
-Taken together, almost half of all errors result from genome
-annotation artifacts, which is thus a major factor to consider.
-To directly test the effect of the genome annotation and separate
-the impact of species coverage from this analysis, we
-clustered the proteins of the 12 reference species based on the
-Ensembl v60 gene annotations. The impact of genome annotation
-is elucidated by comparing the number of errors
-between the 12-species-Ensembl60 OGs with the 12-species-
-Ensembl46 OGs. Comparing the overall number of mispredicted
-genes, at the gene level, the 12-species-Ensembl60
-OGs perform better than the 12-species-Ensembl46 OGs
-(Fig. 4B). We found 45% fewer erroneously assigned genes
-(149 vs. 271) in the 12-species-new-annotation OGs compared
-to the 12-species-old-annotation OGs. Again, a large fraction
-or erroneously assigned genes of the latter dataset (33%)
-do not exist in Ensembl v60 (Table S4 of Supporting
-Information). However, the number of missing genes is
-similar between the two datasets and higher compared to
-the 34-species OGs, indicating, once again, the impact of
-species coverage. The fact that 40% of the mispredicted
-genes in eggNOG OGs would have been avoided by using
-an updated version of genome annotations, highlights the
-importance of frequent updates and points to the sensitivity
-of genome annotations.
-A transparent benchmark set made
-publicly available
-To facilitate the access to the curated benchmark families,
-we have created a web interface through which details on
-the 70 RefOGs can be retrieved. In addition, alignments,
-protein sequences, phylogenetic trees and HMM of each
-RefOG can be downloaded and used for future analyses of
-the 70 bilaterian OGs. The data are available under the
-Creative Commons Attribution 3.0 License at: http://eggnog.
-embl.de/orthobench.
-Conclusions
-The quality assessment introduced here is independent of
-functional associations and, instead, directly approaches
-the phylogenetic foundations of OGs. The benchmark set
-was applied to five commonly used databases and revealed
-the impact of several biological and technical factors that
-challenge orthology prediction. All studied repositories
-predict only a fraction of RefOGs accurately and thus
-indicate that there is considerable room for improvement
-for all orthology assignment methods. Although it is
-impossible to completely quantify the individual factors
-that contribute to the errors of each method due to the
-diversity of the methodologies, hidden correlations, and
-confounding variables, the 70 RefOGs reveal biological
-and technical limitations that affect each method significantly.
-For example, domain complexity is significantly
-correlated with an increased accumulation of erroneously
-assigned genes in all databases. Our results also illustrate
-that all the tested algorithms need to be improved to be able
-to handle the ‘‘complex’’ families (duplication/losses,
-complex domain architectures). Of the RefOGs, 36% are
-not accurately predicted by any tested databases, revealing
-‘‘global’’ limitations of orthology predictions that are associated
-with the factors we outlined here. There are also RefOGs
-that only some of the databasesmispredict, and, thus, hint at
-database-specific improvements, i.e. several operational
-differences, such as the delineation of hierarchical groups,
-and the usage of (as close as possible) outgroups affect the
-accuracy of predicted OGs.
-However, the most striking outcome of this study is that
-technical factors, such as genome quality followed by the
-phylogenetic coverage of the compared species seem to be
-the most limiting factors, causing up to 40% of the errors
-observed. The last observation suggests that frequent
-updates of the databases are necessary. Although we only
-tested bilaterian OGs in this study, we realize the importance
-of the expansion to other taxonomic groups, and have
-therefore provided sequences, alignments, HMM profiles,
-and trees of the RefOGs publicly at http://eggnog.embl.de/
-orthobench for further curation in other species. As this
-benchmark set proved valuable for assessing the quality of
-predicted OGs in metazoans, we believe that an analogous
-dataset covering the entire tree of life and capturing
-additional challenges more prominent in prokaryotes, such
-as horizontal gene transfer, should be the next step in guiding
-orthology prediction.
-Acknowledgments
-We would like to thank the OrthoDB team for providing us
-with a customized dataset. We are grateful to Lars Juhl Jensen,
-Martijn Huynen, Evgeny Zdobnov, and Michael Kuhn for their
-insightful comments, Venkata Satagopam for his help with
-EnsEMBL History, and all members of the Bork group for the
-fruitful discussions, and in particular Ivica Letunic for his help
-with the multidomain analysis.We would like also to thank the
-three anonymous reviewers for their constructive comments.
+range, 1 to 16) and 4-fold more than OMIM (mean, 27.3; SD, 22.8;
+range, 1 to 100) (Fig. 3, A and D, and data files S3 and S4) (45, 46).
+Similarly, previous studies demonstrated 2-fold more phenotypic
+features extracted by CNLP than comprehensive, expert manual extraction
+(36) and 18-fold more phenotypic features extracted by
+CNLP than Orphanet HPO terms for those diseases (47). CNLP extracted
+more phenotypic features in the 101 diagnosed children than
+in the 274 undiagnosed children (mean, 116.1 versus 90.7, respectively;
+P = 0.0004, Mann-Whitney U test; Fig. 3, A, D, E, and H).
+This suggested the possibility that undiagnosed children, in part,
+did not have enough detail in their medical records to make a molecular
+diagnosis. In addition, there was greater overlap between
+CNLP and manually extracted phenotypic features in diagnosed
+children (mean, 2.74 terms; SD, 1.7; range, 0 to 9) than in undiagnosed
+children (mean, 1.52 terms; SD, 1.48; range, 0 to 7; P < 0.0001,
+Mann-Whitney U test) (Fig. 3, D and H). This suggested that undiagnosed
+children, in part, had less consistent information on phenotypic
+features.
+In the 101 diagnosed children, phenotypic features extracted by
+CNLP overlapped expected OMIM phenotypic features (mean, 4.31
+terms; SD, 4.59; range, 0 to 32) significantly more than the manually
+extracted phenotypic features (mean, 0.92 terms; SD, 1.02; range, 0
+to 4; P < 0.0001, paired Wilcoxon test) (Fig. 3B). Although the cohort
+included eight genetic diseases that were incidental findings, their
+exclusion did not materially change these results (table S15 and fig. S1).
+Thus, the recall of OMIM phenotypic features by CNLP, although
+small (mean, 0.20; SD, 0.16; range, 0 to 0.67), was substantially
+greater than the sparse expert manual phenotypic features used in
+expert manual interpretation (mean, 0.04; SD, 0.06; range, 0 to 0.25)
+
+SCIENCE TRANSLATIONAL MEDICINE | RESEARCH ARTICLE
+5 of 13
+(fig. S2). However, the much larger number of phenotypic features
+extracted by CNLP was associated with lower precision (mean, 0.04; SD,
+0.03; range, 0 to 0.15) than manual extraction (mean, 0.25; SD, 0.30;
+range, 0 to 1) when compared with OMIM, indicating that, by design,
+an autonomous diagnostic system should not penalize false-positive
+phenotypic features. Recall and F1 values increased when
+phenotypic features with one degree of hierarchical separation to
+those extracted were included [(mean CNLP recall with inexact
+matches, 0.29; SD, 0.22; range, 0 to 1), (mean CNLP F1 with inexact
+matches, 0.12; SD, 0.08; range, 0 to 0.38), and (mean CNLP F1 with
+exact matches, 0.06; SD, 0.05; range, 0 to 0.23)], indicating that, by
+design, an autonomous system should include hierarchical parents
+of extracted terms (fig. S2).
+Traditionally, genetic diseases have been clinically diagnosed by
+the identification of one or more pathognomonic phenotypic features.
+Such phenotypic features have high IC (the logarithm of the probability
+of that phenotypic feature being observed in all OMIM diseases;
+Fig. 2) (48). A potential concern was that phenotypic features extracted
+by CNLP would have less IC than those prioritized manually
+by experts during interpretation. However, among the 101 children,
+the mean IC of CNLP phenotypic features (8.1; SD, 2.0; range, 2.6 to
+11.4) was significantly higher than manual (7.8; SD, 2.0; range, 2.1
+to 11.4; P = 0.003, Mann-Whitney U test) or OMIM phenotypic
+features (7.3; SD, 1.7; range, 3.2 to 11.4; P < 0.0001, Mann-Whitney
+U test) (Fig. 3E). We note that the mean IC correlated significantly
+with the number of phenotypic features extracted manually and by
+CNLP [Spearman’s rho, 0.24 (P = 0.02) and 0.44 (P < 0.0001), respectively;
+Fig. 3C]. The mean IC of CNLP phenotypic features was
+higher than manual phenotypic features (Fig. 3F), and the mean IC
+correlated significantly with the number of phenotypic features extracted
+by CNLP [Spearman’s rho, 0.30 (P < 0.0001); Fig. 3G].
+
+The remaining step in automated diagnosis of genetic diseases was
+to combine the automated ranking of the patient’s CNLP phenome
+with respect to all genetic diseases, together with the automated
+ranking of the pathogenicity of all their genomic variants based on
+
+literature knowledge and in silico tools (Fig. 1 and fig. S3). We wrote
+scripts to automatically transfer the patient’s CNLP-derived phenotypic
+features and genomic variants to autonomous interpretation
+software (MOON, Diploid). MOON identified the phenotypic features
+associated with each genetic disease by natural language processing
+of the medical literature. Typically, this was a larger set of
+phenotypic features than those listed in the OMIM Clinical Synopsis.
+MOON then compared the patient’s phenotypic features with those
+associated with each genetic disease and rank-ordered the genetic diseases
+on the basis of their likelihood of causing the child’s illness.
+We also wrote scripts to automatically transfer a patient’s nucleotide
+and structural variants (SVs) from the DRAGEN platform to MOON
+as soon as it finished, without user intervention. For rWGS, there
+was a mean of 4,742,595 nucleotide variants and 19.3 SVs, and rapid
+whole-exome sequencing (rWES) had a mean of 39,066 nucleotide
+variants and 10.3 SVs per patient (table S16). Of these, MOON retained
+67,589 nucleotide variants and 12 SVs and 791 nucleotide variants
+and 4.5 SVs for rWGS and rWES, respectively, that had allele frequencies
+of <2% and affected known disease genes (table S17). A
+Bayesian framework and probabilistic model in MOON ranked the
+pathogenicity of these variants with 15 in silico prediction tools,
+ClinVar assertions, and inheritance pattern–based allele frequencies.
+In singleton and family trio analyses, on average five and three provisional
+diagnoses were ranked, respectively (table S18). Because MOON
+was optimized for sensitivity, it shortlisted a median of six nucleotide
+variants per diagnosed subject (range, 2 to 24) and often shortlisted
+false-positive diagnoses in cases considered negative by manual
+interpretation. Both were largely remedied, however, by processing
+the MOON output in InterVar software and retaining only pathogenic
+and likely pathogenic variants (49). InterVar classified variants
+with regard to 18 of the 28 consensus pathogenicity recommendations
+(50), specifically triaging variants of uncertain significance (VUS).
+Automated interpretation took a median of 5 min from transfer of
+variants and HPO terms to display of the provisional diagnosis and
+supporting evidence, including patient phenotypic features matching
+that disorder, for laboratory director review. In four timed runs,
+the time from blood samples or blood spot receipt to display of the
+correct diagnosis as the top-ranked variant was 19:14 to 20:25 hours
+(median, 19:38 hours; Table 1, retrospective cases). This conformed
+well to a daily clinical operation cycle: Sample receipt in the morning
+enabled library preparation in the afternoon, genome sequencing
+overnight, and provisional reporting early the following morning for
+laboratory director review.
+We retrospectively examined the concordance between the autonomous
+system and previous, team-based, manual expert interpretation
+in 95 of the 101 children, diagnosed with 97 of the 105
+genetic diseases (table S15). We excluded eight findings that had been
+reported but that were considered incidental (without current evidence
+of any of the expected phenotypic features). This cohort was
+diverse in race and ancestry. Eleven diagnoses were associated with
+SVs, and 86 were associated with nucleotide variants. No training
+patients were included in the test set. In two patients, a revised clinical
+report was issued of a new diagnosis (infant 6007, EIEE9, Xp22 del,
+and patient 6033, Cockayne syndrome B, ERCC6 p.Gly528Glu and
+c.-15 + 3G > T, which was validated by functional studies). Therefore,
+initial expert manual interpretation had a recall of 98% (95 of 97).
+Although we did not re-analyze manual diagnoses, none of them
+had been demoted in the period since initially reported clinically.
+The autonomous diagnostic system had a precision of 99% (93 of 94)
+and a recall of 97% (94 of 97). For nucleotide variants and SVs, the
+median rank of the correct diagnosis was first (range, 1 to 4 for nucleotide
+variants; range, 1 to 13 for SVs) (table S18).
+The three false-negative autonomous diagnoses comprised the
+following cases:
+Infant 6159, with autosomal dominant Alport syndrome (COL4A4
+c.4715C > T, p.Pro1572Leu), had hematuria, nephrotic syndrome,
+glomerulonephritis, hypertension, and anasarca. OMIM indicated
+that COL4A4-associated Alport syndrome (CAS) was autosomal
+recessive, and p.Pro1572Leu was recorded as pathogenic in ClinVar
+for autosomal recessive Alport syndrome. There are, however, a
+large number of reports of autosomal dominant CAS. The variant was
+maternally inherited. Because the infant’s mother was asymptomatic,
+we assumed that she exhibited incomplete penetrance of autosomal
+dominant CAS, as has been reported (51, 52). The autonomous system
+classified the infant as a carrier for autosomal recessive CAS.
+Infant 253 had autosomal dominant optic atrophy plus syndrome
+(OPA1 c.556 + 1G > A). The autonomous system did not rank this
+variant because of insufficient overlap of the 70 CNLP phenotypic
+features with the MOON disease phenotypic feature model. Recent
+reports indicate that OPA1 can be associated with complex, severe
+multisystem mitochondrial disorders, similar to infant 253.
+Neonate 213 had dextrocardia and transposition of the great vessels.
+He received singleton genome sequencing and was diagnosed manually
+with autosomal dominant visceral heterotaxy type 5 associated with
+a likely pathogenic variant in NODAL (c.778G > A; p.Gly260Arg).
+This variant was filtered out by the autonomous system based on
+classification as a VUS by InterVar (based on PM1-PP3-PP5) and
+the presence of conflicting interpretations in ClinVar, including a
+“likely benign” assertion.
+When the relatively sparse phenotypic features selected by experts
+during manual interpretation were substituted for phenotypic
+features identified by CNLP, the recall of the autonomous system
+decreased (88%; 85 of 97).
+Prospective performance of an autonomous system
+for diagnosis of childhood genetic diseases
+We prospectively compared the performance of the autonomous
+diagnostic system with the fastest manual methods in seven seriously
+ill infants in ICUs and three previously diagnosed infants (Table 1).
+The median time from blood sample to diagnosis with the autonomous
+platform was 19:56 hours (range, 19:10 to 31:02 hours), compared
+with the median manual time of 48:23 hours (range, 34:38 to
+56:03 hours). This included two automated runs that were delayed
+by operator error or data center downtime. The autonomous system
+coupled with InterVar post-processing made three diagnoses and
+no false-positive diagnoses. All three diagnoses were confirmed by
+manual methods and Sanger sequencing. The first was for patient
+352, a 7-week-old female, admitted to the pediatric ICU with diabetic
+ketoacidosis. rWGS was performed on the singleton proband.
+In 19:11 hours, the autonomous system identified a previously
+unreported, heterozygous missense variant in the insulin gene
+(INS c.26C > G, pPro9Arg), which is associated with autosomal
+dominant permanent neonatal diabetes mellitus (OMIM disease
+record 606176). According to American College of Medical Genetics
+and Genomics (ACMG) and Association for Molecular Pathology
+(AMP) pathogenicity criteria, the variant was of uncertain significance
+(VUS). After 42:04 hours, parent-child trio sequencing with
+the fastest manual methods confirmed the result and showed the
+Downloaded from http://stm.sciencemag.org/ by guest on May 5, 2019
+
+variant to be de novo, which changed the variant classification to
+likely pathogenic.
+The second diagnosis was made in patient 7052, a previously
+healthy 17-month-old boy admitted to the pediatric ICU with pseudomonal
+septic shock, metabolic acidosis, ecthyma gangrenosum, and
+hypogammaglobulinemia. Singleton, proband, rapid sequencing, and
+automated interpretation identified a pathogenic hemizygous variant
+in the Bruton tyrosine kinase gene (BTK c.974 + 2 T > C) associated
+with X-linked agammaglobulinemia 1 (OMIM #300755) in
+22:04 hours. This was 16:33 hours earlier than a concurrent trio run
+with the fastest manual methods. The provisional result provided
+confidence in treatment with high-dose intravenous immunoglobulin
+(to maintain serum immunoglobulin G concentration of >600 mg/dl)
+and 6 weeks of antibiotic treatment. This provisional diagnosis was
+verbally conveyed to the clinical team upon review of the autonomous
+result by a laboratory director. Clinical whole-genome sequencing
+subsequently returned the same result and showed the
+variant to be maternally inherited.
+The third diagnosis was made in patient 412, a 3-day-old boy
+admitted to the neonatal ICU with seizures and a strong family history
+of infantile seizures responsive to phenobarbital. The autonomous
+system identified a likely pathogenic, heterozygous variant
+in the potassium voltage-gated channel, KQT-like subfamily, member
+2 gene (KCNQ2 c.1051C > G). This gene is associated with autosomal
+dominant benign familial neonatal seizures 1 (OMIM disease record
+121200). The diagnosis was made in 20:53 hours, which was 27:30 hours
+earlier than a concurrent run with the fastest manual methods. A
+verbal provisional result was conveyed to the clinical team upon review
+of the result by a laboratory director as the diagnosis provided
+confidence in treatment with phenobarbital and changed the prognosis.
+For the remaining four patients, no diagnosis was evident
+with either the manual or autonomous method.
+DISCUSSION
+Previously, the fastest time to diagnosis by genome sequencing in
+clinical practice was 37 hours (8, 15–26) . The protocol was, however,
+extremely labor and capital intensive and was limited to one sample
+at a time. Here, we described a prototypic, autonomous system for
+genetic disease diagnosis in a median of 20:10 hours requiring decreased
+user intervention and a throughput of up to two parent-child
+trios or six probands per run. Most decision-making in ICUs
+is made deliberatively in morning rounds attended by a multidisciplinary
+health care team. Thus, a potential 20-hour diagnosis would
+return results to the on-call physician who had ordered testing in
+time for morning rounds. This would simplify information transfer
+during rounds and facilitate management decisions. A 20-hour diagnosis
+is important in seriously ill infants because most timely genomic
+diagnoses result in changes in ICU management (16–25).
+Our autonomous platform for potential 20-hour diagnosis of genetic
+diseases was designed to meet the needs of acutely ill infants in
+ICUs with diseases of unknown etiology. It has been estimated that
+10 to 12% of infants admitted to regional ICUs may benefit from
+same-day diagnosis and implementation of targeted treatments
+(8, 16–30). In 2014, the U.S. Food and Drug Administration (FDA)
+permitted provisional reporting in seriously ill children when the
+diagnosis indicated changes in management that could improve
+outcomes and where a delay in reporting until confirmation of results
+by Sanger sequencing could result in avoidable morbidity or
+mortality (18, 20, 21). In our previous experience, provisional diagnoses
+were reported in 17% (114 of 684) of genome sequencing cases,
+with a mean time to report of 3.6 days. Presentations in which 20-hour
+diagnoses were likely to be associated with improved outcomes included
+neonatal epileptic encephalopathies, metabolic diseases (as in
+patient 352), septic shock possibly associated with immunodeficiency
+(as in patient 7052), organ failure, and extracorporeal membrane
+oxygenation that is considered in the absence of a known disease
+etiology (18–24, 28). Thus, a circumscribed application of an autonomous
+diagnostic system is to identify provisional diagnoses for
+laboratory director review, earlier than standard rapid testing, in a
+subset of neonatal and pediatric ICU admissions in which morbidity
+or mortality is likely to be avoided by early institution of targeted
+treatment. It will be important to evaluate the proportion of seriously
+ill patients and extent of urgent health care settings in which a potential
+20-hour diagnosis would inform acute interventions and for
+which a longer time to result would not be effective.
+This paper demonstrated the automated extraction of a deep,
+digital phenome from the EHR. The analytic performance of the
+extraction of phenotypic features from the EHRs of children with
+genetic diseases by CNLP herein was considerably better than previous
+reports and appeared adequate for replacement of expert
+manual EHR review (36, 41). CNLP extracted 27-fold more phenotypic
+features from the EHR than those selected by experts during
+manual interpretation, consistent with previous reports (36, 41, 47).
+In addition, the mean IC of the CNLP phenome was greater than
+that of the phenotypic features selected by experts during manual
+interpretation. The superiority of deep CNLP phenomes was shown
+by substantially greater overlap with the expected (OMIM) clinical
+features than by those selected by experts during manual interpretation.
+Phenotypic features selected by experts during manual interpretation
+had poorer diagnostic utility than CNLP-based phenotypic
+features when used in the autonomous diagnostic system. This concurred
+with two recent reports of genome sequencing of cohorts of
+patients in which the rate of diagnosis was greater when more than
+15 phenotypic features were used at time of interpretation than when
+one to five features were used (53, 54).
+Here, we described fully automated interpretation of sequencing
+results. In 95 seriously ill children, the automated system had 97%
+recall and 99% precision in recapitulating 97 genetic disease diagnoses
+made by a team of experts. Where the system suggested more
+than one diagnosis, the median rank of a variant associated with the
+correct diagnosis was first. The three false-negative automated results
+had explanations that either can be addressed by parameter adjustments
+or were of types that cause assessments of variant pathogenicity
+to vary between laboratories (55). Prospectively, molecular laboratory
+directors determined that the automated system made correct
+provisional diagnoses in three of seven seriously ill ICU infants
+(100% precision and recall) with an average time saving of 22:19 hours.
+In light of insufficient expert analysts, molecular laboratory directors,
+medical geneticists, and genetic counselors to expand genomic
+diagnosis to regional ICU infants worldwide, such diagnostic performance
+was sufficient to suggest several, high-throughput clinical
+applications (31–33). Supervised autonomous systems may provide
+effective first-tier, provisional diagnoses, allowing valuable cognitive
+resources to be reserved for unsolved or difficult cases, manual curation
+of variants, and clinical report generation that includes a
+summary of medical management literature. Second, in the roughly
+67% of cases where manual interpretation fails to provide a diagnosis,
+Downloaded from http://stm.sciencemag.org/ by guest on May 5, 2019
+
+
+it is difficult to know when analysis should be considered complete.
+With further development, autonomous diagnostic systems could
+provide an independent, objective analysis in such cases. Third, autonomous
+systems could reanalyze unsolved cases periodically. This
+is burdensome to perform manually because 250 new gene-disease
+associations and 9200 new variant-disease associations are reported
+annually. However, reanalysis yields up to 8 to 10% new diagnoses
+per annum (56–60). Automated reanalysis could include updated
+CNLP of the EHR, which would be useful when the phenotype
+evolves with time. A known risk of genetic testing is overtreatment
+as a result of overdiagnosis (61). Periodic, autonomous reanalysis
+would also detect cases where the diagnosis is changed as a result of
+reclassification of the causality of the gene or pathogenicity of the
+variant and/or where phenome overlap was minimal. An autonomous
+system, akin to an autopilot, can decrease the labor intensity
+of genome interpretation. One hundred six years after the invention
+of the autopilot, however, two pilots are still employed in cockpits of
+commercial aircraft. Likewise, a skilled team will still be required to
+curate the literature and make tough decisions/classifications for
+the foreseeable future.
+The automated system has several limitations. First, system performance
+is partly predicated on the quality of the history and physical
+examination and on the completeness of the write-up in EHR notes.
+The performance of the autonomous diagnostic system, although
+acceptable, is anticipated to improve with additional training, increased
+mapping of HPO terms associated with genetic diseases in
+OMIM, Orphanet, and the literature to SNOMED CT (the native
+language of the CNLP), inclusion of phenotypes from structured
+EHR fields, measurements of phenotype severity (such as phenotype
+term frequency in EHR documents), and material-negative
+phenotypes (pathognomonic phenotypes whose absence rules out a
+specific diagnosis). As part of this, a quantitative data model is needed
+for improved multivariate matching of nonindependent phenotypes
+that appropriately weights related, inexact phenotype matches.
+Although possible, the automated system did not take advantage of
+commercial variant database annotations, such as the Human Gene
+Mutation Database, and did not eliminate the labor-intensive literature
+curation that is the current standard for variant reporting.
+Diagnosis of genetic diseases due to SVs requires standard library
+preparation and additional software steps that add several hours to
+turnaround time. Because the autonomous system uses the same
+knowledge of allele and disease frequencies as manual interpretation,
+which underrepresent minority races or ethnicities, pathogenicity
+assertions in the latter groups are less certain. Likewise, because the
+autonomous system uses the same consensus guidelines for variant
+pathogenicity determination as manual interpretation, it is subject
+to the same general limitations of assertions of pathogenicity (55–61).
+The major barriers to widespread adoption of genomic medicine for
+seriously ill infants with disorders of unknown etiology are an untrained
+medical workforce and substantial shortage of domain experts, including
+medical geneticists, molecular laboratory directors, and genetic
+counselors. Manual genome analysis and interpretation are very labor
+intensive. In addition, the extreme number of rare genetic diseases
+precludes easy domain mastery by nonexperts. Thus, pediatric genomic
+medicine may be one of the first clinical areas where artificial intelligence
+is necessary for its general adoption (62). Diagnosis of seriously
+ill infants with diseases of unknown etiology represents an early application
+of autonomous diagnostic systems because such cases are abundant
+in ICUs and a faster time to result is critical for optimal outcomes.
+MATERIALS AND METHODS
+Study design
+This study was designed to furnish training and test datasets to assist
+in the development of a prototypic, autonomous system for very
+rapid, population-scale, provisional diagnoses of genetic diseases by
+genome sequencing and to separate datasets to test the analytic and
+diagnostic performance of the resultant system both retrospectively
+and prospectively. The 401 subjects analyzed herein were a convenience
+sample of the first symptomatic children who were enrolled
+in four studies that examined the diagnostic rate, time to diagnosis,
+clinical utility of diagnosis, outcomes, and health care utilization
+of rWGS between 26 July 2016 and 25 September 2018 at Rady
+Children’s Hospital, San Diego, USA (ClinicalTrials.gov identifiers:
+NCT03211039, NCT02917460, and NCT03385876) (18, 22–24, 28, 30).
+One of the studies was a randomized controlled trial of genome and
+exome sequencing (NCT03211039); the others were cohort studies.
+All subjects had a symptomatic illness of unknown etiology in which
+a genetic disorder was suspected. All subjects had a Rady Children’s
+Hospital Epic EHR and a genome sequence (genome or exome) that
+had been interpreted manually for diagnosis of a genetic disease. They
+included five groups, namely, 16 children tested for genetic diseases
+by rWGS whose EHRs were used to train CNLP (table S3), 10 children
+with genetic diseases diagnosed by rWGS whose EHRs were used to
+test the performance of CNLP (table S4), 101 children with genetic
+diseases diagnosed by rWGS whose genome sequences and EHRs
+were used to test the retrospective performance of the autonomous
+diagnostic system (table S15), 7 seriously ill children with suspected
+genetic diseases whose DNA samples and EHRs were used to test the
+prospective performance of the autonomous diagnostic system (Table 1),
+and 274 control children in whom rWGS did not disclose a genetic
+disease diagnosis. The studies were approved by the institutional
+review board at Rady Children’s Hospital, San Diego, USA. The
+studies were designated to be of “nonsignificant risk” by the FDA in
+response to an investigational device exemption presubmission
+inquiry in April 2014. The studies were performed in accordance
+with the Declaration of Helsinki. Informed consent was obtained
+from at least one parent or guardian.
+Standard clinical rWGS and rWES, analysis,
+and interpretation
+Standard clinical rWGS and rWES were performed in laboratories
+accredited by the College of American Pathologists (CAP) and certified
+through Clinical Laboratory Improvement Amendments (CLIA).
+Experts selected key clinical features representative of each child’s
+illness from the Epic EHR and mapped them to genetic diagnoses with
+Phenomizer or Phenolyzer (16, 18, 20–24, 45, 63). Trio EDTA-blood
+samples were obtained where possible. Genomic DNA was isolated
+with an EZ1 Advanced XL robot and the EZ1 DSP DNA Blood Kit
+(Qiagen). DNA quality was assessed with the Quant-iT Picogreen
+dsDNA Assay Kit (Thermo Fisher Scientific) with the Gemini EM
+Microplate Reader (Molecular Devices). Genomic DNA was fragmented
+by sonication (Covaris), and bar-coded, paired-end, polymerase
+chain reaction (PCR)–free libraries were prepared for rWGS
+with TruSeq DNA LT kits (Illumina) or Hyper kits (KAPA Biosystems).
+Sequencing libraries were analyzed with the Library Quantification
+Kit (KAPA Biosystems) and High Sensitivity NGS Fragment Analysis
+Kit (Advanced Analytical), respectively. One hundred one–nucleotide
+paired-end rWGS was performed to 45-fold coverage with Illumina
+HiSeq 2500 (rapid run mode), HiSeq 4000, or NovaSeq 6000 (S2 flow
+Downloaded from http://stm.sciencemag.org/ by guest on May 5, 2019
+Clark et al., Sci. Transl. Med. 11, eaat6177 (2019) 24 April 2019
+SCIENCE TRANSLATIONAL MEDICINE | RESEARCH ARTICLE
+9 of 13
+cell) instruments, as described (16). rWES was performed by GeneDx.
+Exome enrichment was with the xGen Exome Research Panel v1.0
+(Integrated DNA Technologies), and amplification was performed
+using the Herculase II Fusion DNA Polymerase (Agilent) (18, 64).
+Sequences were aligned to human genome assembly GRCh37 (hg19),
+and variants were identified with the DRAGEN Platform (v.2.5.1,
+Illumina, San Diego; table S16) (16). SVs were identified with Manta
+and CNVnator (using DNAnexus), a combination that provided the
+highest sensitivity and precision in 21 samples with known SVs
+(table S18) (18, 65, 66). SVs were filtered to retain those affecting coding
+regions of known disease genes and with allele frequencies of <2%
+in the Rady Children’s Institute for Genomic Medicine (RCIGM)
+database. Nucleotide variants and SVs were annotated, analyzed, and
+interpreted by clinical molecular geneticists with Opal Clinical (Fabric
+Genomics), according to standard guidelines (50, 67). Opal annotated
+variants with respect to pathogenicity, generated a rank-ordered differential
+diagnosis based on the disease-gene algorithm VAAST (Variant
+Annotation, Analysis, and Search Tool; a gene burden test) and the
+algorithm PHEVOR (Phenotype Driven Variant Ontological Re-ranking),
+which combined the observed HPO phenotype terms from
+patients, and re-ranked disease genes based on the phenotypic match
+and the gene score (68–70). Automatically generated, ranked results
+were manually interpreted through iterative Opal searches. Initially,
+variants were filtered to retain those with allele frequencies of <1%
+in the Exome Variant Server, 1000 Genomes Samples, and Exome
+Aggregation Consortium database (71). Variants were further filtered
+for de novo, recessive, and dominant inheritance patterns. The evidence
+supporting a diagnosis was then manually evaluated by comparison
+with the published literature. Analysis, interpretation, and
+reporting required an average of 6 hours of expert effort. If rWGS or
+rWES established a provisional diagnosis for which a specific treatment
+was available to prevent morbidity or mortality, then this was
+immediately conveyed to the clinical team, as described. All causative
+variants were confirmed by Sanger sequencing or chromosomal microarray,
+as appropriate. Secondary findings were not reported, but
+medically actionable incidental findings were reported if families
+consented to receiving this information.
+Natural language processing and phenotype extraction
+Extraction of HPO terms from the EHR entailed the following four
+steps:
+(1) Clinical records were exported from the EHR data warehouse,
+transformed into a compatible format (JSON), and loaded into
+CLiX ENRICH.
+(2) A semi-automated query map was created, with HPO terms
+(and their synonyms) as the input and CLiX queries as the output.
+The HPO terms were passed through the CLiX encoding engine,
+resulting in creation of CLiX post-coordinated SNOMED CT expressions
+for each recognized HPO term or synonym. Where matches
+were not exact, manual review was used to validate the generated
+CLiX queries. Where there was no match or incorrect matches, new
+content was added to the Clinithink SNOMED CT extension and terminology
+files to ensure appropriate matches between phenotypes
+in HPO and those in SNOMED CT. This was an iterative process
+that resulted in a CLiX query set that covered 60% (7706) of 12,786
+HPO terms (9 October 2017, HPO build).
+(3) EHR documents containing unstructured data were passed
+through the CNLP engine. The natural language processing engine
+read the unstructured text and encoded it in structured format as
+post-coordinated SNOMED CT expressions. These expressions were
+more complex than simple SNOMED CT codes, and examples of their
+processing are included in Supplementary Materials and Methods.
+(4) These encoded data were then interrogated by the CLiX query
+technology (abstraction). To trigger an HPO query, the encoded
+data had to contain either an exact match or one of its logical descendants
+(exploiting the parent-child hierarchy of the SNOMED
+CT ontology), resulting in a list of HPO terms for each patient.
+Rapid whole-genome sequencing
+Sequencing libraries were prepared from 10 l of EDTA blood or
+five 3-mm punches from a Nucleic-Card Matrix dried blood spot
+(Thermo Fisher Scientific) with Nextera DNA Flex Library Prep
+kits (Illumina) and five cycles of PCR, as described (35). For SV
+analysis, libraries were prepared by Hyper kits (KAPA Biosystems), as
+described above. Libraries were quantified with Quant-iT PicoGreen
+dsDNA assays (Thermo Fisher Scientific). Libraries were sequenced
+(2 × 101 nt) without indexing on the S1 FC with NovaSeq 6000 S1
+reagent kits (Illumina). Sequences were aligned to human genome
+assembly GRCh37 (hg19), and nucleotide variants were identified
+with the DRAGEN Platform (v.2.5.1, Illumina; table S16) (16).
+Automated tertiary analysis
+Automated variant interpretation was performed with MOON
+(Diploid) (72). Data sources and versions were ClinVar (2018-04-29),
+dbNSFP (3.5), dbSNP (150), dbscSNV (1.1), Apollo (2018-07-20),
+Ensembl (37), gnomAD (2.0.1), HPO (2017-10-05), Database of
+Genomic Variants (DGV; 2016-03-01), dbVar (2018-06-24), and
+MOON (2.0.5). MOON generated a list of potential provisional diagnoses
+by sequentially filtering and ranking variants with decision
+trees, Bayesian models, neural networks, and natural language processing.
+MOON was iteratively trained with thousands of previous
+patient samples uploaded by previous investigators. No samples
+analyzed in this study were used in training of MOON.
+The filtering pipeline was designed to minimize false negatives.
+For single-nucleotide variant analysis, MOON excluded low-quality and
+common variants [>2% in Genome Aggregation Database (gnomAD)]
+and known likely benign/benign variants in ClinVar. We retained
+only variants in coding and splice site regions and known pathogenic
+variants in noncoding regions. A disease annotation was added to
+the remaining variants on the basis of a proprietary disorder model
+(72). The disorder model performs natural language processing of
+the genetics literature to automatically extract associations between
+diseases, disease genes, inheritance patterns, specific clinical features,
+and other metadata on an ongoing basis.
+Subsequent steps included filtering on variant frequency, with
+variable frequency thresholds depending on the inheritance pattern
+of the associated disease, known pathogenicity of the variant, and
+typical age of onset range of the annotated disease. In family analyses
+(duo and trio analyses), cosegregation of the variant with the phenotype,
+according to autosomal dominant, autosomal recessive, X-linked
+dominant, or X-linked recessive inheritance patterns, was taken
+into account. Parent-child variant segregation was not applied as a
+strict filter criterion, thereby also ensuring that causal mutations
+following non-Mendelian inheritance (e.g., with incomplete penetrance)
+were identified in family analyses. For proband-only analyses,
+only variants for which the zygosity of the called variant fit the
+inheritance pattern of the annotated disease were retained. In a final
+filter step, the phenotype overlap was scored between the input
+Downloaded from http://stm.sciencemag.org/ by guest on May 5, 2019
+Clark et al., Sci. Transl. Med. 11, eaat6177 (2019) 24 April 2019
+SCIENCE TRANSLATIONAL MEDICINE | RESEARCH ARTICLE
+10 of 13
+HPO terms describing the patient’s phenotype and known disease
+manifestations of the disorder annotated from the published literature.
+Variants in genes for which the phenotype match with the annotated
+disease was considered too limited on the basis of Apollo
+were removed from the analysis. The final rank of variants was based
+on proprietary algorithms that took phenotype match and variant
+effect into account. In addition, MOON provided all metadata
+supporting the pathogenicity of ranked variants. MOON also returned
+an annotated list of all rare variants (<2% in gnomAD) and carrier
+status for recessive disorders.
+For SV analysis, MOON removed known benign SVs on the basis
+of the DGV. SVs overlapping pathogenic SVs listed in dbVar were
+retained for analysis. From the remaining variants, MOON discarded
+SV that did not overlap with coding regions of known disease genes
+(Apollo). If a family analysis was performed, then segregation of the
+SV was taken into account, although non-Mendelian inheritance
+patterns (e.g., incomplete penetrance) were also supported. In a final
+filter step, only SVs for which there was a phenotype overlap between
+the input HPO terms and known disease presentations of at
+least one of the genes affected by the SV were retained. MOON then
+reported a ranked list of candidate SVs, where ranking was mostly
+based on the phenotype overlap.
+Statistical analysis
+To assess the complexity of phenomes associated with childhood
+genetic diseases, we compared phenotypes identified by manual review
+and by CNLP and listed for each patient’s diagnosis in OMIM.
+All analyses were conducted in R v3.3.3 (73). When applying CNLP
+to a patient’s EHR, the list of HPO terms produced contained both
+terms that had an exact match to a phenotype in the clinical notes
+and terms that were superclasses (ancestor terms) of exact matches. The
+R package ontologyIndex v2.4 was used to load the October 2017
+build of HPO into R and to calculate the IC of each HPO term in the
+entire OMIM corpus (74). The IC for term ‘phenotype’, which reflects
+its clinical specificity, is given by IC(phenotype) = −log(pphenotype),
+where pphenotype was the probability of observing the exact term or
+one of its subclasses across all diseases in OMIM. Because phenotypes
+that were extracted manually and by CNLP were restricted
+to subclasses of “phenotypic abnormality” (HP:0000118), OMIM
+terms that were subclasses of “clinical modifier” (HP:0012823),
+“frequency” (HP:0040279), “mode of inheritance” (HP:0000005),
+and “mortality/aging” (HP:0040006) were not included in the analyses.
+Phenotype sets were first compared visually by plotting the HPO
+graph for each patient with the R package hpoPlot v2.4 (75). Summary
+statistics for outcomes of interest include the means, SD, and range.
+Before testing for significant differences, outcome variables were
+tested for normality with the Shapiro-Wilk test. Because of deviations
+from normality, differences in phenotype counts and IC were
+evaluated with two-sided Mann-Whitney U tests and, when the
+data were paired, Wilcoxon signed-rank tests. Correlation was
+assessed with Spearman’s rank correlation coefficient (rs). Precision
+and recall were given by tp/(tp + fp) and tp/(tp + fn), respectively,
+where tp was true positives, fp was false positives, and fn was false
+negatives. The number of true positives, tp, was defined in two
+ways. First, tp was set to the number of HPO terms that overlapped
+between sets of phenotypes. Second, tp was calculated on the basis
+of terms that were up to one degree of separation apart within the
+HPO hierarchy (parent-child terms) between sets of phenotypes,
+allowing for inexact, but similar, matches. Additional graphics were
+produced with packages ggplot2 v2.2.1 and eulerr v4.0.0 (76, 77). A
+significance cutoff of P < 0.05 was used for all analyses.
+
+
